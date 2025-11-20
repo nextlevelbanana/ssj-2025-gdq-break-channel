@@ -6,6 +6,4 @@ export type Monster = {
     name: string;
     hurt: string;
     idle: string;
-    hurtSteps: number;
-    idleSteps: number;
 }

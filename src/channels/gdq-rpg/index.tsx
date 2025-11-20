@@ -57,24 +57,17 @@ const monsters: {[key: string]: Monster} = {
     BadRNG:{
         name: "Bad RNG",
         hurt: badRngHurt,
-        hurtSteps: 9,
         idle: badRngIdle,
-        idleSteps: 5,
     },
      Orb: {
         name: "Orb",
         hurt: orbHurt,
-        hurtSteps: 9,
         idle: orbIdle,
-        idleSteps: 5,
     },
     Softlock: {
         name: "Softlock",
         hurt: softLockHurt,
-        hurtSteps: 8,
         idle: softLockIdle,
-        idleSteps: 5,
-        hp: 50
     }
 }
 
