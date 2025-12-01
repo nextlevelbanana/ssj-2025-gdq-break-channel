@@ -31,192 +31,199 @@ registerChannel('Velocity Quest', 95, VelocityQuest, {
 
 const MESSAGE_DISPLAY_TIME = 3000;
 
-const monsters: {[key: string]: MonsterType} = {
-    BadRNG:{
-        name: "Bad RNG",
-        hurt: badRngHurt,
-        idle: badRngIdle,
-    },
-     Orb: {
-        name: "Orb",
-        hurt: orbHurt,
-        idle: orbIdle,
-    },
-    RunKiller: {
-        name: "Run Killer",
-        hurt: runKillerHurt,
-        idle: runKillerIdle,
-    },
-    Softlock: {
-        name: "Softlock",
-        hurt: softLockHurt,
-        idle: softLockIdle,
-    }
-}
-
+const monsters: { [key: string]: MonsterType } = {
+	BadRNG: {
+		name: 'Bad RNG',
+		hurt: badRngHurt,
+		idle: badRngIdle,
+	},
+	Orb: {
+		name: 'Orb',
+		hurt: orbHurt,
+		idle: orbIdle,
+	},
+	RunKiller: {
+		name: 'Run Killer',
+		hurt: runKillerHurt,
+		idle: runKillerIdle,
+	},
+	Softlock: {
+		name: 'Softlock',
+		hurt: softLockHurt,
+		idle: softLockIdle,
+	},
+};
 
 function VelocityQuest(props: ChannelProps) {
 	const [total] = useReplicant<TotalType | null>('total', null);
-    const dialogTimerRef = useRef<NodeJS.Timeout | null>(null);
-    const messageQueueRef = useRef<Array<MessageQueueItem>>([]);
-    const [currentMessage, setCurrentMessage] = useState<MessageQueueItem>();
+	const dialogTimerRef = useRef<NodeJS.Timeout | null>(null);
+	const messageQueueRef = useRef<Array<MessageQueueItem>>([]);
+	const [currentMessage, setCurrentMessage] = useState<MessageQueueItem>();
 
-    const [monsterHP, setMonsterHP] = useState<number>(0);
-    const [monsterMaxHP, setMonsterMaxHP] = useState<number>(0);
-    const [monsterKey, setMonsterKey] = useState<string>("");
-    const [monsterState, setMonsterState] = useState<"idle" | "hurt">("idle");
-    const [monsterName, setMonsterName] = useState<string>("");
-    const victoryTimerRef = useRef<NodeJS.Timeout | null>(null);
-    const [showVictoryDialog, setShowVictoryDialog] = useState<boolean>(false);
-    const [idleUrl, setIdleUrl] = useState<string>("");
-    const [hurtUrl, setHurtUrl] = useState<string>("");
-    const [displayTotal, setDisplayTotal] = useState<number>(0);
-    const [showSparkle, setShowSparkle] = useState<boolean>(false);
-    const [showStrike, setShowStrike] = useState<boolean>(false); 
-    const [showSubscription, setShowSubscription] = useState<boolean>(false);
-    const [velocityState, setVelocityState] = useState<"idle" | "attack">("idle");
-    
-    useEffect(() => {
-        if (total == null || displayTotal !== 0) return;
-        setDisplayTotal(Math.floor(total?.raw ?? 0));
-    }, [total, displayTotal]);
-    
-    function spawnMonster () {
-        const currentMonster = Object.keys(monsters)[Math.floor(Math.random() * Object.keys(monsters).length)];
-        
-        const randomHP = Math.floor(Math.random() * 1000) * (currentMonster == "RunKiller" ? 5 : 1);
-        setMonsterHP(randomHP);
-        setMonsterMaxHP(randomHP);
-        setMonsterName(monsters[currentMonster].name);
-        setMonsterKey(currentMonster);
-        setIdleUrl(monsters[currentMonster]?.idle || "");
-        setHurtUrl(monsters[currentMonster]?.hurt || "");
-        setMonsterState("idle");
-        
-        setShowSparkle(true);
-    }
+	const [monsterHP, setMonsterHP] = useState<number>(0);
+	const [monsterMaxHP, setMonsterMaxHP] = useState<number>(0);
+	const [monsterKey, setMonsterKey] = useState<string>('');
+	const [monsterState, setMonsterState] = useState<'idle' | 'hurt'>('idle');
+	const [monsterName, setMonsterName] = useState<string>('');
+	const victoryTimerRef = useRef<NodeJS.Timeout | null>(null);
+	const [showVictoryDialog, setShowVictoryDialog] = useState<boolean>(false);
+	const [idleUrl, setIdleUrl] = useState<string>('');
+	const [hurtUrl, setHurtUrl] = useState<string>('');
+	const [displayTotal, setDisplayTotal] = useState<number>(0);
+	const [showSparkle, setShowSparkle] = useState<boolean>(false);
+	const [showStrike, setShowStrike] = useState<boolean>(false);
+	const [showSubscription, setShowSubscription] = useState<boolean>(false);
+	const [velocityState, setVelocityState] = useState<'idle' | 'attack'>('idle');
+
+	useEffect(() => {
+		if (total == null || displayTotal !== 0) return;
+		setDisplayTotal(Math.floor(total?.raw ?? 0));
+	}, [total, displayTotal]);
+
+	function spawnMonster() {
+		const currentMonster = Object.keys(monsters)[Math.floor(Math.random() * Object.keys(monsters).length)];
+
+		const randomHP = Math.floor(Math.random() * 1000) * (currentMonster == 'RunKiller' ? 5 : 1);
+		setMonsterHP(randomHP);
+		setMonsterMaxHP(randomHP);
+		setMonsterName(monsters[currentMonster].name);
+		setMonsterKey(currentMonster);
+		setIdleUrl(monsters[currentMonster]?.idle || '');
+		setHurtUrl(monsters[currentMonster]?.hurt || '');
+		setMonsterState('idle');
+
+		setShowSparkle(true);
+	}
 
 	useListenFor('donation', (donation: FormattedDonation) => {
-        messageQueueRef.current.push({kind: 'donation', item: donation});
-        
-        if (!dialogTimerRef.current && !currentMessage) {
-            showNextDonationOrSubscription();
-        }
+		messageQueueRef.current.push({ kind: 'donation', item: donation });
+
+		if (!dialogTimerRef.current && !currentMessage) {
+			showNextDonationOrSubscription();
+		}
 	});
-    
-    function showNextDonationOrSubscription() {
-        const next = messageQueueRef.current.shift();
-        if (!next) {
-            setCurrentMessage(undefined);
-            return;
-        }
-        setCurrentMessage(next);
-        
-          if (dialogTimerRef.current) {
-            clearTimeout(dialogTimerRef.current);
-        }
 
-        dialogTimerRef.current = setTimeout(() => {
-            dialogTimerRef.current = null;
-            showNextDonationOrSubscription();
-        }, MESSAGE_DISPLAY_TIME);
-        
-        if (next.kind == 'donation') {
-            setMonsterHP(oldHp => Math.floor(oldHp - next.item.rawAmount));      
-            setVelocityState("attack");       
-            setMonsterState("hurt");
-            setShowStrike(true);            
-            setDisplayTotal(prev => Math.floor(prev + (next.item.rawAmount ?? 0)));
-        } else {
-            setShowSubscription(true);
-        }
-    }
-    
-    useEffect(() => {
-        return () => {
-            if (dialogTimerRef.current) clearTimeout(dialogTimerRef.current);
-            if (victoryTimerRef.current) clearTimeout(victoryTimerRef.current);
-        };
-    }, []);
-    
-    useListenFor('subscription', (subscription: TwitchSubscription) => {
-        messageQueueRef.current.push({ kind: 'subscription', item: subscription });
-        
-        if (!dialogTimerRef.current && !currentMessage) {
-            showNextDonationOrSubscription();
-        }
-    });
-    
-    useEffect(() => {
-        spawnMonster();
-    }, []);
-   
-   function onVictory() {
-     setShowVictoryDialog(true);
-        setMonsterKey("");
-        setIdleUrl("");
-        setHurtUrl("");
-        const timer = setTimeout(() => {
-            setShowVictoryDialog(false);
-            spawnMonster();
-        }, MESSAGE_DISPLAY_TIME);
-        victoryTimerRef.current = timer;
-        return () => clearTimeout(timer);
-   }
-   
+	function showNextDonationOrSubscription() {
+		const next = messageQueueRef.current.shift();
+		if (!next) {
+			setCurrentMessage(undefined);
+			return;
+		}
+		setCurrentMessage(next);
 
-   useEffect(() => {
-        setHurtUrl(monsters[monsterKey]?.hurt || "");
-        setIdleUrl(monsters[monsterKey]?.idle || "");
-   }, [monsterState, monsterKey]);
-   
-    const handleAttackEnd = () => {
-        setVelocityState("idle");
-    }
-    
-    const handleMonsterHurtEnd = () => {
-        setMonsterState("idle");
-        if (monsterHP < 0) {
-            onVictory();
-        }
-    }
-     
-    const handleStrikeEnd = () => {
-        setShowStrike(false);
-    }
-    
-    const handleSparkleEnd = () => {
-        setShowSparkle(false);
-    }
-    
-    const handleSubscriptionEnd = () => {
-        setShowSubscription(false);
-    }
+		if (dialogTimerRef.current) {
+			clearTimeout(dialogTimerRef.current);
+		}
+
+		dialogTimerRef.current = setTimeout(() => {
+			dialogTimerRef.current = null;
+			showNextDonationOrSubscription();
+		}, MESSAGE_DISPLAY_TIME);
+
+		if (next.kind == 'donation') {
+			setMonsterHP((oldHp) => Math.floor(oldHp - next.item.rawAmount));
+			setVelocityState('attack');
+			setMonsterState('hurt');
+			setShowStrike(true);
+			setDisplayTotal((prev) => Math.floor(prev + (next.item.rawAmount ?? 0)));
+		} else {
+			setShowSubscription(true);
+		}
+	}
+
+	useEffect(() => {
+		return () => {
+			if (dialogTimerRef.current) clearTimeout(dialogTimerRef.current);
+			if (victoryTimerRef.current) clearTimeout(victoryTimerRef.current);
+		};
+	}, []);
+
+	useListenFor('subscription', (subscription: TwitchSubscription) => {
+		messageQueueRef.current.push({ kind: 'subscription', item: subscription });
+
+		if (!dialogTimerRef.current && !currentMessage) {
+			showNextDonationOrSubscription();
+		}
+	});
+
+	useEffect(() => {
+		spawnMonster();
+	}, []);
+
+	function onVictory() {
+		setShowVictoryDialog(true);
+		setMonsterKey('');
+		setIdleUrl('');
+		setHurtUrl('');
+		const timer = setTimeout(() => {
+			setShowVictoryDialog(false);
+			spawnMonster();
+		}, MESSAGE_DISPLAY_TIME);
+		victoryTimerRef.current = timer;
+		return () => clearTimeout(timer);
+	}
+
+	useEffect(() => {
+		setHurtUrl(monsters[monsterKey]?.hurt || '');
+		setIdleUrl(monsters[monsterKey]?.idle || '');
+	}, [monsterState, monsterKey]);
+
+	const handleAttackEnd = () => {
+		setVelocityState('idle');
+	};
+
+	const handleMonsterHurtEnd = () => {
+		setMonsterState('idle');
+		if (monsterHP < 0) {
+			onVictory();
+		}
+	};
+
+	const handleStrikeEnd = () => {
+		setShowStrike(false);
+	};
+
+	const handleSparkleEnd = () => {
+		setShowSparkle(false);
+	};
+
+	const handleSubscriptionEnd = () => {
+		setShowSubscription(false);
+	};
 
 	return (
 		<Container>
-            <BG/>
-            <Velocity velocityState={velocityState} onAnimationEnd={handleAttackEnd}/>
-             {currentMessage?.kind === 'donation' && (
-                <DonationDialog donation={currentMessage.item} />
-            )}
-            <SubscriptionNotification show={showSubscription} onSubscriptionEnd={handleSubscriptionEnd}/>
-            <Monster onSparkleEnd={handleSparkleEnd} onStrikeEnd={handleStrikeEnd} monsterName={monsterName} monsterState={monsterState} idleUrl={idleUrl} hurtUrl={hurtUrl} showStrike={showStrike} showSparkle={showSparkle} monsterHP={monsterHP} monsterMaxHP={monsterMaxHP} onHurtAnimationEnd={handleMonsterHurtEnd} />
-	        <Total displayTotal={displayTotal} />
-            <VictoryDialog showVictoryDialog={showVictoryDialog} monsterName={monsterName} />
+			<BG />
+			<Velocity velocityState={velocityState} onAnimationEnd={handleAttackEnd} />
+			{currentMessage?.kind === 'donation' && <DonationDialog donation={currentMessage.item} />}
+			<SubscriptionNotification show={showSubscription} onSubscriptionEnd={handleSubscriptionEnd} />
+			<Monster
+				onSparkleEnd={handleSparkleEnd}
+				onStrikeEnd={handleStrikeEnd}
+				monsterName={monsterName}
+				monsterState={monsterState}
+				idleUrl={idleUrl}
+				hurtUrl={hurtUrl}
+				showStrike={showStrike}
+				showSparkle={showSparkle}
+				monsterHP={monsterHP}
+				monsterMaxHP={monsterMaxHP}
+				onHurtAnimationEnd={handleMonsterHurtEnd}
+			/>
+			<Total displayTotal={displayTotal} />
+			<VictoryDialog showVictoryDialog={showVictoryDialog} monsterName={monsterName} />
 		</Container>
 	);
 }
 
-
 const BG = styled.div`
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    background-image: url(${bg});
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	background-image: url(${bg});
+	background-size: cover;
+	background-position: center;
+	background-repeat: no-repeat;
 `;
 
 const Container = styled.div`
