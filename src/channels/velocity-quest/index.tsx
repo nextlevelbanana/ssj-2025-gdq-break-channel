@@ -74,7 +74,7 @@ function VelocityQuest(props: ChannelProps) {
 	const [showSubscription, setShowSubscription] = useState<boolean>(false);
 	const [velocityState, setVelocityState] = useState<'idle' | 'attack'>('idle');
 
-    	const showNextDonationOrSubscription = useCallback(() => {
+	const showNextDonationOrSubscription = useCallback(() => {
 		const next = messageQueueRef.current.shift();
 		if (!next) {
 			setCurrentMessage(undefined);
@@ -101,7 +101,7 @@ function VelocityQuest(props: ChannelProps) {
 			setShowSubscription(true);
 		}
 	}, []);
-    
+
 	useListenFor('donation', (donation: FormattedDonation) => {
 		messageQueueRef.current.push({ kind: 'donation', item: donation });
 
@@ -174,9 +174,9 @@ function VelocityQuest(props: ChannelProps) {
 	const handleSparkleEnd = () => {
 		setShowSparkle(false);
 	};
-    
+
 	const handleStrikeEnd = () => {
-    	setShowStrike(false);
+		setShowStrike(false);
 	};
 
 	const handleSubscriptionEnd = () => {

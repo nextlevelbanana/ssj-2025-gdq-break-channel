@@ -1,7 +1,7 @@
 export type MessageQueueItem =
 	| { kind: 'donation'; item: FormattedDonation }
 	| { kind: 'subscription'; item: TwitchSubscription };
-    
+
 export type MonsterImageProps = {
 	fullSteps: number;
 	state: 'idle' | 'hurt';
@@ -10,8 +10,8 @@ export type MonsterImageProps = {
 	onHurtAnimationEnd?: () => void;
 	hurtDuration: number;
 	hurtSteps: number;
-}
-    
+};
+
 export type MonsterProps = {
 	monsterName: string;
 	monsterState: 'idle' | 'hurt';
@@ -24,7 +24,7 @@ export type MonsterProps = {
 	onHurtAnimationEnd?: () => void;
 	onStrikeEnd?: () => void;
 	onSparkleEnd?: () => void;
-}
+};
 
 export type MonsterType = {
 	name: string;

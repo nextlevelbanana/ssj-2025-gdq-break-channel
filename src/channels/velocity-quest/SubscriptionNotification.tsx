@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import styled from '@emotion/styled';
 import portraitUrl from './assets/velocity/velocity-portrait.png';
 

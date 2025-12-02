@@ -39,7 +39,10 @@ export function HPBar({ monsterHP, monsterMaxHP }: { monsterHP: number; monsterM
 	return (
 		<HPBarContainer>
 			<HPBarBackground src={hpBar} />
-			<HPBarFill src={hpBarFill} hpPercentage={Math.max(0, Math.min(1, monsterMaxHP == 0 ? 0 : monsterHP / monsterMaxHP))} />
+			<HPBarFill
+				src={hpBarFill}
+				hpPercentage={Math.max(0, Math.min(1, monsterMaxHP == 0 ? 0 : monsterHP / monsterMaxHP))}
+			/>
 			<HPBarTop src={hpBarTop} />
 		</HPBarContainer>
 	);

@@ -5,7 +5,6 @@ import { HPBar } from './HPBar';
 import sparkleUrl from './assets/vfx/sparkle-sheet.png';
 import strikeUrl from './assets/vfx/strike-sheet.png';
 
-
 const MonsterContainer = styled.div`
 	position: absolute;
 	top: 32px;
@@ -88,7 +87,7 @@ export function Monster({
 }: MonsterProps) {
 	let steps = monsterName === 'Run Killer' ? 9 : 3;
 	let duration = monsterName === 'Run Killer' ? 0.6 : 0.5;
-    let fullSteps = monsterName === 'Run Killer' ? 18 : 9;
+	let fullSteps = monsterName === 'Run Killer' ? 18 : 9;
 
 	if (monsterHP <= 0) {
 		if (monsterName === 'Run Killer') {
