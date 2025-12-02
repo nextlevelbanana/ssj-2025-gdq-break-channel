@@ -1,4 +1,5 @@
 import styled from '@emotion/styled';
+import { MonsterImageProps } from './types';
 
 const MonsterIdle = styled.div<{ idleUrl: string }>`
 	background-image: url(${(props) => props.idleUrl});
@@ -29,6 +30,8 @@ type MonsterHurtProps = {
 	steps: number;
 };
 
+/* a hit plays the first few frames */
+/* but defeating them plays the full animation */
 const MonsterHurt = styled.div<MonsterHurtProps>`
 	background-image: url(${(props) => props.hurtUrl});
 	background-size: ${({ fullSteps }) => 280 * fullSteps}px 280px;
@@ -60,19 +63,11 @@ export function MonsterImage({
 	onHurtAnimationEnd,
 	hurtDuration,
 	hurtSteps,
-}: {
-	fullSteps: number;
-	state: 'idle' | 'hurt';
-	idleUrl: string;
-	hurtUrl: string;
-	onHurtAnimationEnd?: () => void;
-	hurtDuration: number;
-	hurtSteps: number;
-}) {
+}: MonsterImageProps) {
 	return (
-		<div className={state}>
-			{state == 'idle' && <MonsterIdle idleUrl={idleUrl} />}
-			{state == 'hurt' && (
+		<>
+			{state === 'idle' && <MonsterIdle idleUrl={idleUrl} />}
+			{state === 'hurt' && (
 				<MonsterHurt
 					fullSteps={fullSteps}
 					hurtUrl={hurtUrl}
@@ -81,6 +76,6 @@ export function MonsterImage({
 					steps={hurtSteps}
 				/>
 			)}
-		</div>
+		</>
 	);
 }

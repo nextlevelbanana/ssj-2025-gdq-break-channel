@@ -20,7 +20,7 @@ const HPBarBackground = styled.img`
 
 const HPBarFill = styled.img<{ hpPercentage: number }>`
 	position: absolute;
-	width: calc(${(props) => Math.max(0, Math.min(1, props.hpPercentage)) * 100}% - 8px);
+	width: calc(${(props) => props.hpPercentage * 100}% - 8px);
 	height: calc(100% - 8px);
 	top: 4px;
 	left: 4px;
@@ -39,7 +39,7 @@ export function HPBar({ monsterHP, monsterMaxHP }: { monsterHP: number; monsterM
 	return (
 		<HPBarContainer>
 			<HPBarBackground src={hpBar} />
-			<HPBarFill src={hpBarFill} hpPercentage={monsterHP / monsterMaxHP} />
+			<HPBarFill src={hpBarFill} hpPercentage={Math.max(0, Math.min(1, monsterMaxHP == 0 ? 0 : monsterHP / monsterMaxHP))} />
 			<HPBarTop src={hpBarTop} />
 		</HPBarContainer>
 	);

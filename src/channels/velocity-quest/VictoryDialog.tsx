@@ -30,5 +30,5 @@ const VictoryDialogBox = styled.div`
 
 export function VictoryDialog({ showVictoryDialog, monsterName }: { showVictoryDialog: boolean; monsterName: string }) {
 	if (!showVictoryDialog) return null;
-	return <VictoryDialogBox>You defeated {monsterName}!</VictoryDialogBox>;
+	return <VictoryDialogBox>Chat defeated {monsterName}!</VictoryDialogBox>;
 }

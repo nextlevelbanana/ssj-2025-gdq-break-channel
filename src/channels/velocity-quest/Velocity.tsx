@@ -80,12 +80,10 @@ const VelocityAttack = styled.div`
 `;
 
 function VelocityImage({ state, onAnimationEnd }: { state: 'idle' | 'attack'; onAnimationEnd: () => void }) {
-	console.log('Velocity state:', state);
-
 	return (
 		<div className={state}>
-			{state == 'idle' && <VelocityIdle />}
-			{state == 'attack' && <VelocityAttack onAnimationEnd={onAnimationEnd} />}
+			{state === 'idle' && <VelocityIdle />}
+			{state === 'attack' && <VelocityAttack onAnimationEnd={onAnimationEnd} />}
 		</div>
 	);
 }

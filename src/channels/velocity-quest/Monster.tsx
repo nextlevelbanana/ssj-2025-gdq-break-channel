@@ -1,14 +1,14 @@
 import styled from '@emotion/styled';
+import { MonsterProps } from './types';
 import { MonsterImage } from './MonsterImage';
 import { HPBar } from './HPBar';
 import sparkleUrl from './assets/vfx/sparkle-sheet.png';
-import strkeUrl from './assets/vfx/strike-sheet.png';
+import strikeUrl from './assets/vfx/strike-sheet.png';
 
-const TOP_MARGIN = 32;
 
 const MonsterContainer = styled.div`
 	position: absolute;
-	top: ${TOP_MARGIN}px;
+	top: 32px;
 	right: 2%;
 	width: 300px;
 	height: 300px;
@@ -32,7 +32,7 @@ const SparkleVfx = styled.div`
 	transform: scale(1);
 	animation: playSparkle 0.8s steps(12) 1;
 	position: absolute;
-	top: ${TOP_MARGIN}px;
+	top: 32px;
 	z-index: 2;
 
 	@keyframes playSparkle {
@@ -46,7 +46,7 @@ const SparkleVfx = styled.div`
 `;
 
 const StrikeVfx = styled.div`
-	background-image: url(${strkeUrl});
+	background-image: url(${strikeUrl});
 	background-size: cover;
 	background-repeat: no-repeat;
 	background-position: 0 0;
@@ -85,24 +85,13 @@ export function Monster({
 	monsterHP,
 	monsterMaxHP,
 	onHurtAnimationEnd,
-}: {
-	monsterName: string;
-	monsterState: 'idle' | 'hurt';
-	idleUrl: string;
-	hurtUrl: string;
-	showStrike: boolean;
-	showSparkle: boolean;
-	monsterHP: number;
-	monsterMaxHP: number;
-	onHurtAnimationEnd?: () => void;
-	onStrikeEnd?: () => void;
-	onSparkleEnd?: () => void;
-}) {
-	let steps = monsterName == 'Run Killer' ? 9 : 3;
-	let duration = monsterName == 'Run Killer' ? 0.6 : 0.5;
+}: MonsterProps) {
+	let steps = monsterName === 'Run Killer' ? 9 : 3;
+	let duration = monsterName === 'Run Killer' ? 0.6 : 0.5;
+    let fullSteps = monsterName === 'Run Killer' ? 18 : 9;
 
 	if (monsterHP <= 0) {
-		if (monsterName == 'Run Killer') {
+		if (monsterName === 'Run Killer') {
 			steps = 18;
 			duration = 2;
 		} else {
@@ -123,7 +112,7 @@ export function Monster({
 					onHurtAnimationEnd={onHurtAnimationEnd}
 					hurtDuration={duration}
 					hurtSteps={steps}
-					fullSteps={monsterName == 'Run Killer' ? 18 : 9}
+					fullSteps={fullSteps}
 				/>
 			</MonsterFrame>
 			<HPBar monsterHP={monsterHP} monsterMaxHP={monsterMaxHP} />

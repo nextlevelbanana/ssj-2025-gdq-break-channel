@@ -1,7 +1,10 @@
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { useListenFor, useReplicant } from 'use-nodecg';
+import styled from '@emotion/styled';
 import type { FormattedDonation, Total as TotalType, TwitchSubscription } from '@gdq/types/tracker';
-import type { MessageQueueItem, MonsterType } from './types';
 import { ChannelProps, registerChannel } from '../channels';
-import { useState, useEffect, useRef } from 'react';
+
+import type { MessageQueueItem, MonsterType } from './types';
 import { DonationDialog } from './DonationDialog';
 import { Monster } from './Monster';
 import { SubscriptionNotification } from './SubscriptionNotification';
@@ -9,11 +12,7 @@ import { Total } from './Total';
 import { Velocity } from './Velocity';
 import { VictoryDialog } from './VictoryDialog';
 
-import { useListenFor, useReplicant } from 'use-nodecg';
-import styled from '@emotion/styled';
-
 import bg from './assets/bg.png';
-
 import badRngIdle from './assets/bad-rng/bad-rng-idle-sheet.png';
 import badRngHurt from './assets/bad-rng/bad-rng-hurt-sheet.png';
 import orbIdle from './assets/orb/orb-idle-sheet.png';
@@ -75,35 +74,7 @@ function VelocityQuest(props: ChannelProps) {
 	const [showSubscription, setShowSubscription] = useState<boolean>(false);
 	const [velocityState, setVelocityState] = useState<'idle' | 'attack'>('idle');
 
-	useEffect(() => {
-		if (total == null || displayTotal !== 0) return;
-		setDisplayTotal(Math.floor(total?.raw ?? 0));
-	}, [total, displayTotal]);
-
-	function spawnMonster() {
-		const currentMonster = Object.keys(monsters)[Math.floor(Math.random() * Object.keys(monsters).length)];
-
-		const randomHP = Math.floor(Math.random() * 1000) * (currentMonster == 'RunKiller' ? 5 : 1);
-		setMonsterHP(randomHP);
-		setMonsterMaxHP(randomHP);
-		setMonsterName(monsters[currentMonster].name);
-		setMonsterKey(currentMonster);
-		setIdleUrl(monsters[currentMonster]?.idle || '');
-		setHurtUrl(monsters[currentMonster]?.hurt || '');
-		setMonsterState('idle');
-
-		setShowSparkle(true);
-	}
-
-	useListenFor('donation', (donation: FormattedDonation) => {
-		messageQueueRef.current.push({ kind: 'donation', item: donation });
-
-		if (!dialogTimerRef.current && !currentMessage) {
-			showNextDonationOrSubscription();
-		}
-	});
-
-	function showNextDonationOrSubscription() {
+    	const showNextDonationOrSubscription = useCallback(() => {
 		const next = messageQueueRef.current.shift();
 		if (!next) {
 			setCurrentMessage(undefined);
@@ -120,7 +91,7 @@ function VelocityQuest(props: ChannelProps) {
 			showNextDonationOrSubscription();
 		}, MESSAGE_DISPLAY_TIME);
 
-		if (next.kind == 'donation') {
+		if (next.kind === 'donation') {
 			setMonsterHP((oldHp) => Math.floor(oldHp - next.item.rawAmount));
 			setVelocityState('attack');
 			setMonsterState('hurt');
@@ -129,14 +100,15 @@ function VelocityQuest(props: ChannelProps) {
 		} else {
 			setShowSubscription(true);
 		}
-	}
-
-	useEffect(() => {
-		return () => {
-			if (dialogTimerRef.current) clearTimeout(dialogTimerRef.current);
-			if (victoryTimerRef.current) clearTimeout(victoryTimerRef.current);
-		};
 	}, []);
+    
+	useListenFor('donation', (donation: FormattedDonation) => {
+		messageQueueRef.current.push({ kind: 'donation', item: donation });
+
+		if (!dialogTimerRef.current && !currentMessage) {
+			showNextDonationOrSubscription();
+		}
+	});
 
 	useListenFor('subscription', (subscription: TwitchSubscription) => {
 		messageQueueRef.current.push({ kind: 'subscription', item: subscription });
@@ -147,10 +119,36 @@ function VelocityQuest(props: ChannelProps) {
 	});
 
 	useEffect(() => {
-		spawnMonster();
+		return () => {
+			if (dialogTimerRef.current) clearTimeout(dialogTimerRef.current);
+			if (victoryTimerRef.current) clearTimeout(victoryTimerRef.current);
+		};
 	}, []);
 
-	function onVictory() {
+	const spawnMonster = useCallback(() => {
+		const currentMonster = Object.keys(monsters)[Math.floor(Math.random() * Object.keys(monsters).length)];
+
+		const randomHP = Math.floor(Math.random() * 1000) * (currentMonster === 'RunKiller' ? 5 : 1);
+		setMonsterHP(randomHP);
+		setMonsterMaxHP(randomHP);
+		setMonsterName(monsters[currentMonster].name);
+		setMonsterKey(currentMonster);
+		setIdleUrl(monsters[currentMonster]?.idle || '');
+		setHurtUrl(monsters[currentMonster]?.hurt || '');
+		setMonsterState('idle');
+		setShowSparkle(true);
+	}, []);
+
+	useEffect(() => {
+		spawnMonster();
+	}, [spawnMonster]);
+
+	useEffect(() => {
+		if (total === null) return;
+		setDisplayTotal(Math.floor(total.raw));
+	}, [total]);
+
+	const onVictory = useCallback(() => {
 		setShowVictoryDialog(true);
 		setMonsterKey('');
 		setIdleUrl('');
@@ -160,13 +158,7 @@ function VelocityQuest(props: ChannelProps) {
 			spawnMonster();
 		}, MESSAGE_DISPLAY_TIME);
 		victoryTimerRef.current = timer;
-		return () => clearTimeout(timer);
-	}
-
-	useEffect(() => {
-		setHurtUrl(monsters[monsterKey]?.hurt || '');
-		setIdleUrl(monsters[monsterKey]?.idle || '');
-	}, [monsterState, monsterKey]);
+	}, [spawnMonster]);
 
 	const handleAttackEnd = () => {
 		setVelocityState('idle');
@@ -179,12 +171,12 @@ function VelocityQuest(props: ChannelProps) {
 		}
 	};
 
-	const handleStrikeEnd = () => {
-		setShowStrike(false);
-	};
-
 	const handleSparkleEnd = () => {
 		setShowSparkle(false);
+	};
+    
+	const handleStrikeEnd = () => {
+    	setShowStrike(false);
 	};
 
 	const handleSubscriptionEnd = () => {
